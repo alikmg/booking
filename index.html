@@ -1,322 +1,81 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>قائمة خدمات وأسعار المستشفى</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #007bf5;
-            --danger: #dc3545;
-            --bg: #f4f7f6;
-            --card-bg: #ffffff;
-            --text: #2c3e50;
-        }
-
-        * {
-            box-sizing: border-box;
-            font-family: 'Cairo', sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            padding-bottom: 20px;
-        }
-
-        header {
-            background: linear-gradient(135deg, #0056b3, #007bf5);
-            color: white;
-            padding: 20px;
-            text-align: center;
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        header h1 {
-            font-size: 1.5rem;
-            margin-bottom: 5px;
-        }
-
-        header p {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        .search-container {
-            padding: 15px;
-            position: sticky;
-            top: 0;
-            background: var(--bg);
-            z-index: 100;
-        }
-
-        .search-box {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #ddd;
-            border-radius: 25px;
-            font-size: 1rem;
-            outline: none;
-            transition: 0.3s;
-        }
-
-        .search-box:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 8px rgba(0, 123, 245, 0.2);
-        }
-
-        .nav-tabs {
-            display: flex;
-            overflow-x: auto;
-            padding: 0 15px 10px 15px;
-            gap: 10px;
-            scrollbar-width: none;
-        }
-
-        .nav-tabs::-webkit-scrollbar {
-            display: none;
-        }
-
-        .tab-btn {
-            background: white;
-            border: 1px solid #ddd;
-            padding: 8px 16px;
-            border-radius: 20px;
-            white-space: nowrap;
-            font-weight: 600;
-            cursor: pointer;
-            color: #666;
-            transition: 0.3s;
-        }
-
-        .tab-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .container {
-            padding: 10px 15px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-
-        @media (min-width: 600px) {
-            .grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-        }
-
-        .card-info {
-            flex-grow: 1;
-        }
-
-        .card-title {
-            font-weight: 700;
-            font-size: 1rem;
-            margin-bottom: 4px;
-        }
-
-        .card-note {
-            font-size: 0.8rem;
-            color: #777;
-        }
-
-        .card-price {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--danger);
-            background: #fff0f1;
-            padding: 6px 12px;
-            border-radius: 8px;
-            white-space: nowrap;
-            margin-right: 10px;
-        }
-
-        .card-price.inquire {
-            color: #0056b3;
-            background: #e6f2ff;
-            font-size: 0.85rem;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        .cta-btn {
-            display: block;
-            width: calc(100% - 30px);
-            margin: 20px 15px;
-            padding: 14px;
-            background: #28a745;
-            color: white;
-            text-align: center;
-            text-decoration: none;
-            font-weight: 700;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
-        }
-    </style>
-</head>
-<body>
-
-<header>
-    <h1>قسم الخدمات والأسعار الطبية</h1>
-    <p>دليل خدمات الطوارئ والعيادات والفحوصات</p>
-</header>
-
-<div class="search-container">
-    <input type="text" id="searchInput" class="search-box" placeholder="ابحث عن خدمة، كشف، أو تحليل..." onkeyup="filterServices()">
-</div>
-
-<div class="nav-tabs">
-    <button class="tab-btn active" onclick="switchCategory('all', event)">الكل</button>
-    <button class="tab-btn" onclick="switchCategory('emergency', event)">🚨 خدمات الطوارئ</button>
-    <button class="tab-btn" onclick="switchCategory('clinics', event)">👨‍⚕️ العيادات الخارجية</button>
-    <button class="tab-btn" onclick="switchCategory('labs', event)">🔬 التحاليل الطبية</button>
-    <button class="tab-btn" onclick="switchCategory('scans', event)">📡 العروض والفحوصات</button>
-    <button class="tab-btn" onclick="switchCategory('pharmacy', event)">💊 المستهلكات والأدوية</button>
-</div>
-
-<div class="container">
-    <div id="servicesContainer" class="grid">
-        <!-- تحميل البيانات ديناميكياً -->
-    </div>
-</div>
-
-<a href="tel:123456789" class="cta-btn">📞 تواصل معنا للاستفسار وحجز الخدمات</a>
-
-<script>
-    const servicesData = [
-        // 🚨 خدمات الطوارئ (أسعار ثابتة ورسمية)
-        { category: 'emergency', name: 'كشف الطوارئ', price: '200 ج.م', note: 'بدون المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'كشف منزلي', price: '500 ج.م', note: 'بدون المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'خروج ممرض', price: '200 ج.م', note: 'بدون المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'الغرزة', price: '50 ج.م', note: 'بدون المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'غيار جراحي صغير', price: '50 ج.م', note: 'بدون المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'غيار جراحي كبير', price: '100 ج.م', note: 'بدون المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'جلسة أوكسجين / نبيوليزر', price: '50 ج.م', note: 'بدون المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'متابعة محلول الساعة', price: '75 ج.م', note: 'بدون المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'حقنة وريد', price: '15 ج.م', note: 'بدون المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'حقنة عضل', price: '10 ج.م', note: 'بدون المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'تركيب قسطرة بولية', price: '150 ج.م', note: 'بدون المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'تركيب كانيولا', price: '10 ج.م', note: 'بدون المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'اختبار حساسية', price: '20 ج.م', note: 'بدون المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'رسم قلب', price: '100 ج.م', note: 'شامل المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'قياس سكر', price: '20 ج.م', note: 'شامل المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'قياس ضغط', price: '15 ج.م', note: '', isFixed: true },
-        { category: 'emergency', name: 'غيار الحرق بالعيادة', price: '150 ج.م', note: 'بدون المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'متابعة محلول الحديد بالساعة', price: '100 ج.م', note: 'بدون المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'عمل الجبيرة بالكشف', price: '150 ج.م', note: 'بدون المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'جلسة غسيل كلوي', price: '1700 ج.م', note: 'بدون أدوية', isFixed: true },
-        { category: 'emergency', name: 'خروج طبيب مع الإسعاف', price: 'حسب الاتفاق مع الحسابات', note: 'بدون المستهلكات', isFixed: true },
-        { category: 'emergency', name: 'غرز تجميل بالعمليات', price: 'حسب الاتفاق مع الحسابات', note: 'بدون المستهلكات', isFixed: true },
-
-        // 👨‍⚕️ العيادات الخارجية (حسب سعر الفترة الزمنية)
-        { category: 'clinics', name: 'كشف الجراحة - د/ خالد مخلوف', price: 'تواصل لمعرفة السعر حسب الفترة الزمنية', note: '', isFixed: false },
-        { category: 'clinics', name: 'استشارة الجراحة - د/ خالد مخلوف', price: 'تواصل لمعرفة السعر حسب الفترة الزمنية', note: '', isFixed: false },
-        { category: 'clinics', name: 'كشف الأطفال - د/ رحاب الجمل', price: 'تواصل لمعرفة السعر حسب الفترة الزمنية', note: '', isFixed: false },
-        { category: 'clinics', name: 'كشف العظام', price: 'تواصل لمعرفة السعر حسب الفترة الزمنية', note: '', isFixed: false },
-        { category: 'clinics', name: 'كشف الباطنة', price: 'تواصل لمعرفة السعر حسب الفترة الزمنية', note: '', isFixed: false },
-        { category: 'clinics', name: 'كشف النساء والتوليد', price: 'تواصل لمعرفة السعر حسب الفترة الزمنية', note: '', isFixed: false },
-        { category: 'clinics', name: 'كشف المخ والأعصاب', price: 'تواصل لمعرفة السعر حسب الفترة الزمنية', note: '', isFixed: false },
-        { category: 'clinics', name: 'كشف القلب', price: 'تواصل لمعرفة السعر حسب الفترة الزمنية', note: '', isFixed: false },
-
-        // 🔬 التحاليل الطبية (حسب سعر اليوم)
-        { category: 'labs', name: 'تحاليل وظائف الكلى (Urea, Creatinine)', price: 'تواصل لمعرفة سعر التحليل اليوم', note: 'تحاليل المعمل', isFixed: false },
-        { category: 'labs', name: 'تحاليل وظائف الكبد (GOT, GPT)', price: 'تواصل لمعرفة سعر التحليل اليوم', note: 'تحاليل المعمل', isFixed: false },
-        { category: 'labs', name: 'صورة دم كاملة (CBC)', price: 'تواصل لمعرفة سعر التحليل اليوم', note: 'تحاليل المعمل', isFixed: false },
-        { category: 'labs', name: 'تحليل السكر / السكر التراكمي', price: 'تواصل لمعرفة سعر التحليل اليوم', note: 'تحاليل المعمل', isFixed: false },
-        { category: 'labs', name: 'هرمونات الغدة الدرقية (T3, T4, TSH)', price: 'تواصل لمعرفة سعر التحليل اليوم', note: 'تحاليل المعمل', isFixed: false },
-        { category: 'labs', name: 'دلالات فيروسات الكبد (PCR)', price: 'تواصل لمعرفة سعر التحليل اليوم', note: 'تحاليل المعمل', isFixed: false },
-
-        // 📡 العروض والفحوصات (حسب سعر العرض اليوم)
-        { category: 'scans', name: 'إيكو على القلب', price: 'تواصل لمعرفة سعر العرض اليوم', note: 'قسم الفحوصات', isFixed: false },
-        { category: 'scans', name: 'فحص السونار', price: 'تواصل لمعرفة سعر العرض اليوم', note: 'قسم الفحوصات', isFixed: false },
-        { category: 'scans', name: 'أشعة X-Ray', price: 'تواصل لمعرفة سعر العرض اليوم', note: 'قسم الأشعة', isFixed: false },
-        { category: 'scans', name: 'فحوصات الدوبلكس والشرايين', price: 'تواصل لمعرفة سعر العرض اليوم', note: 'قسم الأشعة', isFixed: false },
-
-        // 💊 المستهلكات والأدوية (حسب سعر الأدوية اليوم)
-        { category: 'pharmacy', name: 'المستهلكات الطبية (سرنجات، كانيولات، قساطر...)', price: 'تواصل لمعرفة سعر اليوم', note: 'الصيدلية / الطوارئ', isFixed: false },
-        { category: 'pharmacy', name: 'الأدوية والمحاليل الطبية', price: 'تواصل لمعرفة سعر اليوم', note: 'الصيدلية / الطوارئ', isFixed: false }
-    ];
-
-    let currentCategory = 'all';
-
-    function renderServices(data) {
-        const container = document.getElementById('servicesContainer');
-        container.innerHTML = '';
-        
-        if (data.length === 0) {
-            container.innerHTML = '<p style="text-align:center; width:100%; padding:20px;">لا توجد نتائج مطابقة للبحث</p>';
-            return;
-        }
-
-        data.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `
-                <div class="card-info">
-                    <div class="card-title">${item.name}</div>
-                    <div class="card-note">${item.note || ''}</div>
-                </div>
-                <div class="card-price ${item.isFixed ? '' : 'inquire'}">${item.price}</div>
-            `;
-            container.appendChild(card);
-        });
-    }
-
-    function filterServices() {
-        const query = document.getElementById('searchInput').value.toLowerCase();
-        const filtered = servicesData.filter(item => {
-            const matchesCategory = (currentCategory === 'all' || item.category === currentCategory);
-            const matchesQuery = item.name.toLowerCase().includes(query) || item.note.toLowerCase().includes(query);
-            return matchesCategory && matchesQuery;
-        });
-        renderServices(filtered);
-    }
-
-    function switchCategory(cat, event) {
-        currentCategory = cat;
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        if (event && event.target) {
-            event.target.classList.add('active');
-        }
-        filterServices();
-    }
-
-    // Load initial data
-    renderServices(servicesData);
-</script>
-
-</body>
-</html>
-```
-
-eof
-
-لقد قمت بإنشاء ملف `index.html` المطلوب. 
-
-يمكنك تحميل الملف أو نسخ المحتوى لرفعه مباشرة على GitHub في المستودع الذي تقوم بإنشائه الآن لاستضافته.
+/* arabic */
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/cairo/v31/SLXVc1nY6HkvangtZmpQdkhzfH5lkSscQyyS8p4_RHH1.woff2) format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC, U+102E0-102FB, U+10E60-10E7E, U+10EC2-10EC7, U+10EC9-10EEE, U+10EF0-10EFF, U+1EE00-1EE03, U+1EE05-1EE1F, U+1EE21-1EE22, U+1EE24, U+1EE27, U+1EE29-1EE32, U+1EE34-1EE37, U+1EE39, U+1EE3B, U+1EE42, U+1EE47, U+1EE49, U+1EE4B, U+1EE4D-1EE4F, U+1EE51-1EE52, U+1EE54, U+1EE57, U+1EE59, U+1EE5B, U+1EE5D, U+1EE5F, U+1EE61-1EE62, U+1EE64, U+1EE67-1EE6A, U+1EE6C-1EE72, U+1EE74-1EE77, U+1EE79-1EE7C, U+1EE7E, U+1EE80-1EE89, U+1EE8B-1EE9B, U+1EEA1-1EEA3, U+1EEA5-1EEA9, U+1EEAB-1EEBB, U+1EEF0-1EEF1;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/cairo/v31/SLXVc1nY6HkvangtZmpQdkhzfH5lkSscSCyS8p4_RHH1.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/cairo/v31/SLXVc1nY6HkvangtZmpQdkhzfH5lkSscRiyS8p4_RA.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* arabic */
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/cairo/v31/SLXVc1nY6HkvangtZmpQdkhzfH5lkSscQyyS8p4_RHH1.woff2) format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC, U+102E0-102FB, U+10E60-10E7E, U+10EC2-10EC7, U+10EC9-10EEE, U+10EF0-10EFF, U+1EE00-1EE03, U+1EE05-1EE1F, U+1EE21-1EE22, U+1EE24, U+1EE27, U+1EE29-1EE32, U+1EE34-1EE37, U+1EE39, U+1EE3B, U+1EE42, U+1EE47, U+1EE49, U+1EE4B, U+1EE4D-1EE4F, U+1EE51-1EE52, U+1EE54, U+1EE57, U+1EE59, U+1EE5B, U+1EE5D, U+1EE5F, U+1EE61-1EE62, U+1EE64, U+1EE67-1EE6A, U+1EE6C-1EE72, U+1EE74-1EE77, U+1EE79-1EE7C, U+1EE7E, U+1EE80-1EE89, U+1EE8B-1EE9B, U+1EEA1-1EEA3, U+1EEA5-1EEA9, U+1EEAB-1EEBB, U+1EEF0-1EEF1;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/cairo/v31/SLXVc1nY6HkvangtZmpQdkhzfH5lkSscSCyS8p4_RHH1.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/cairo/v31/SLXVc1nY6HkvangtZmpQdkhzfH5lkSscRiyS8p4_RA.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* arabic */
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/cairo/v31/SLXVc1nY6HkvangtZmpQdkhzfH5lkSscQyyS8p4_RHH1.woff2) format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC, U+102E0-102FB, U+10E60-10E7E, U+10EC2-10EC7, U+10EC9-10EEE, U+10EF0-10EFF, U+1EE00-1EE03, U+1EE05-1EE1F, U+1EE21-1EE22, U+1EE24, U+1EE27, U+1EE29-1EE32, U+1EE34-1EE37, U+1EE39, U+1EE3B, U+1EE42, U+1EE47, U+1EE49, U+1EE4B, U+1EE4D-1EE4F, U+1EE51-1EE52, U+1EE54, U+1EE57, U+1EE59, U+1EE5B, U+1EE5D, U+1EE5F, U+1EE61-1EE62, U+1EE64, U+1EE67-1EE6A, U+1EE6C-1EE72, U+1EE74-1EE77, U+1EE79-1EE7C, U+1EE7E, U+1EE80-1EE89, U+1EE8B-1EE9B, U+1EEA1-1EEA3, U+1EEA5-1EEA9, U+1EEAB-1EEBB, U+1EEF0-1EEF1;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/cairo/v31/SLXVc1nY6HkvangtZmpQdkhzfH5lkSscSCyS8p4_RHH1.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/cairo/v31/SLXVc1nY6HkvangtZmpQdkhzfH5lkSscRiyS8p4_RA.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
